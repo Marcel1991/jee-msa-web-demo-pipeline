@@ -86,11 +86,26 @@ stages:
             displayName: 'Publicar Cobertura en Azure DevOps'
 
   # ==========================================
-  # STAGE 2: APROBACIÓN MANUAL (APPROVAL)
+  # STAGE 2: SEGURIDAD (SECURITY)
+  # ==========================================
+  - stage: Security
+    displayName: 'Seguridad'
+    dependsOn: CI
+    condition: always()
+    jobs:
+      - job: send_status_email
+        displayName: 'Enviar Reporte'
+        steps:
+          - script: |
+              echo "Estado de seguridad de la ejecución del pipeline construido por Marcel Rios: $(Agent.JobStatus)"
+            displayName: 'Simulación de Envío de Correo Electrónico seguridad'
+
+  # ==========================================
+  # STAGE 3: APROBACIÓN MANUAL (APPROVAL)
   # ==========================================
   - stage: Approval
     displayName: 'Aprobar'
-    dependsOn: CI
+    dependsOn: [CI, Security]
     condition: succeeded()
     jobs:
       - job: manual_gate
@@ -104,7 +119,7 @@ stages:
               onTimeout: 'reject'
 
   # ==========================================
-  # STAGE 3: DESPLIEGUE CONTINUO (CD)
+  # STAGE 4: DESPLIEGUE CONTINUO (CD)
   # ==========================================
   - stage: CD
     displayName: 'CD'
@@ -146,7 +161,7 @@ stages:
             displayName: 'Descarga CLI, Login y Despliegue Docker'
 
   # ==========================================
-  # STAGE 4: NOTIFICACIONES (NOTIFICATIONS)
+  # STAGE 5: NOTIFICACIONES (NOTIFICATIONS)
   # ==========================================
   - stage: Notifications
     displayName: 'Notificar'
